@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Form, Button, Card, Row, Col, Alert } from "react-bootstrap";
-import productsDb from "../../data/products.json";
 
 function AddProduct() {
   const navigate = useNavigate();
@@ -12,11 +11,21 @@ function AddProduct() {
     category: "",
     description: "",
     image: "",
+    count: 0,
     rating: { rate: 0, count: 0 }
   });
 
+  const [categories, setCategories] = useState([]);
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    fetch("https://699edb8f78dda56d396b9d19.mockapi.io/categories")
+      .then(res => res.json())
+      .then(json => setCategories(json));
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,12 +35,12 @@ function AddProduct() {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = "Nimetus on kohustuslik";
+    if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0)
-      newErrors.price = "Sisesta kehtiv hind (> 0)";
-    if (!formData.category.trim()) newErrors.category = "Kategooria on kohustuslik";
-    if (!formData.description.trim()) newErrors.description = "Kirjeldus on kohustuslik";
-    if (!formData.image.trim()) newErrors.image = "Pildi URL on kohustuslik";
+      newErrors.price = "Enter a valid price (> 0)";
+    if (!formData.category.trim()) newErrors.category = "Category is required";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.image.trim()) newErrors.image = "Image URL is required";
     return newErrors;
   };
 
@@ -43,11 +52,7 @@ function AddProduct() {
       return;
     }
 
-const existing = localStorage.getItem("products");
-const currentProducts = existing ? JSON.parse(existing) : productsDb;
-
     const newProduct = {
-      id: Date.now(),
       title: formData.title.trim(),
       price: parseFloat(formData.price),
       category: formData.category.trim(),
@@ -56,25 +61,30 @@ const currentProducts = existing ? JSON.parse(existing) : productsDb;
       rating: { rate: 0, count: 0 }
     };
 
-    const updated = [...currentProducts, newProduct];
-    localStorage.setItem("products", JSON.stringify(updated));
-
-    setSuccess(true);
-    setTimeout(() => navigate("/admin/maintain-products"), 1500);
+    fetch("https://699edb8f78dda56d396b9d19.mockapi.io/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newProduct)
+    })
+      .then(res => res.json())
+      .then(() => {
+        setSuccess(true);
+        setTimeout(() => navigate("/admin/maintain-products"), 1500);
+      });
   };
 
   return (
     <Container className="mt-4" style={{ maxWidth: "700px" }}>
       <div className="d-flex align-items-center gap-3 mb-4">
         <Link to="/admin/maintain-products">
-          <Button variant="outline-secondary">← Tagasi</Button>
+          <Button variant="outline-secondary">← Back</Button>
         </Link>
-        <h2 className="mb-0">Lisa uus toode</h2>
+        <h2 className="mb-0">Add new product</h2>
       </div>
 
       {success && (
         <Alert variant="success">
-          ✅ Toode lisatud! Suunatakse tagasi...
+          ✅ Product added! Redirecting...
         </Alert>
       )}
 
@@ -83,13 +93,13 @@ const currentProducts = existing ? JSON.parse(existing) : productsDb;
           <Form onSubmit={handleSubmit}>
 
             <Form.Group className="mb-3">
-              <Form.Label>Nimetus *</Form.Label>
+              <Form.Label>Title *</Form.Label>
               <Form.Control
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="Toote nimetus"
+                placeholder="Product title"
                 isInvalid={!!errors.title}
               />
               <Form.Control.Feedback type="invalid">{errors.title}</Form.Control.Feedback>
@@ -98,13 +108,13 @@ const currentProducts = existing ? JSON.parse(existing) : productsDb;
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Hind (€) *</Form.Label>
+                  <Form.Label>Price (€) *</Form.Label>
                   <Form.Control
                     type="number"
                     name="price"
                     value={formData.price}
                     onChange={handleChange}
-                    placeholder="nt. 29.99"
+                    placeholder="e.g. 29.99"
                     step="0.01"
                     min="0"
                     isInvalid={!!errors.price}
@@ -114,22 +124,69 @@ const currentProducts = existing ? JSON.parse(existing) : productsDb;
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Kategooria *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    placeholder="nt. electronics"
-                    isInvalid={!!errors.category}
-                  />
-                  <Form.Control.Feedback type="invalid">{errors.category}</Form.Control.Feedback>
+                  <Form.Label>Category *</Form.Label>
+                  {!showNewCategory ? (
+                    <>
+                      <Form.Select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleChange}
+                        isInvalid={!!errors.category}
+                      >
+                        <option value="">-- Select category --</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">{errors.category}</Form.Control.Feedback>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0 mt-1"
+                        onClick={() => setShowNewCategory(true)}
+                      >
+                        + Add new category
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Form.Control
+                        type="text"
+                        placeholder="New category name..."
+                        value={newCategory}
+                        onChange={e => setNewCategory(e.target.value)}
+                      />
+                      <div className="d-flex gap-2 mt-1">
+                        <Button
+                          variant="success"
+                          size="sm"
+                          onClick={() => {
+                            if (newCategory.trim()) {
+                              setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+                              setCategories(prev => [...prev, { id: Date.now(), name: newCategory.trim() }]);
+                              setNewCategory("");
+                              setShowNewCategory(false);
+                            }
+                          }}
+                        >
+                          ✔ Use
+                        </Button>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => { setShowNewCategory(false); setNewCategory(""); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </Form.Group>
               </Col>
             </Row>
 
             <Form.Group className="mb-3">
-              <Form.Label>Pildi URL *</Form.Label>
+              <Form.Label>Image URL *</Form.Label>
               <Form.Control
                 type="url"
                 name="image"
@@ -143,7 +200,7 @@ const currentProducts = existing ? JSON.parse(existing) : productsDb;
                 <div className="mt-2 text-center">
                   <img
                     src={formData.image}
-                    alt="Eelvaade"
+                    alt="Preview"
                     style={{ maxHeight: "150px", maxWidth: "100%", objectFit: "contain", border: "1px solid #ddd", borderRadius: "8px", padding: "8px" }}
                     onError={e => e.target.style.display = "none"}
                   />
@@ -151,15 +208,26 @@ const currentProducts = existing ? JSON.parse(existing) : productsDb;
               )}
             </Form.Group>
 
+            <Form.Group className="mb-3">
+              <Form.Label>Stock count</Form.Label>
+              <Form.Control
+                type="number"
+                name="count"
+                value={formData.count}
+                onChange={handleChange}
+                min="0"
+              />
+            </Form.Group>
+
             <Form.Group className="mb-4">
-              <Form.Label>Kirjeldus *</Form.Label>
+              <Form.Label>Description *</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={4}
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Toote kirjeldus..."
+                placeholder="Product description..."
                 isInvalid={!!errors.description}
               />
               <Form.Control.Feedback type="invalid">{errors.description}</Form.Control.Feedback>
@@ -167,10 +235,10 @@ const currentProducts = existing ? JSON.parse(existing) : productsDb;
 
             <div className="d-flex gap-2">
               <Button type="submit" variant="success" className="flex-grow-1">
-                ✅ Lisa toode
+                Add product
               </Button>
               <Link to="/admin/maintain-products">
-                <Button variant="outline-danger">Tühista</Button>
+                <Button variant="outline-danger">Cancel</Button>
               </Link>
             </div>
 

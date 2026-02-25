@@ -1,36 +1,46 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Container, Form, Button, Card, Row, Col, Alert } from "react-bootstrap";
-import productsFromFile from "../../data/products.json";
 
 function EditProduct() {
   const { index } = useParams();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState(() => {
-    const saved = localStorage.getItem("products");
-    const allProducts = saved ? JSON.parse(saved) : productsFromFile;
-    const product = allProducts.find(p => p.id === Number(index) || p.id === index);
-    return product ? {
-      title: product.title,
-      price: product.price,
-      category: product.category,
-      description: product.description,
-      image: product.image,
-      rating: product.rating,
-      count: product.count ?? 0
-    } : null;
+  const [formData, setFormData] = useState({
+    id: 0,  
+    title: "",
+    price: 0,
+    category: "",
+    description: "",
+    image: "",
+    rating: 0,
+    count: 0
   });
+
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+
+  useEffect(() => {
+    fetch("https://699edb8f78dda56d396b9d19.mockapi.io/products/" + index)
+      .then(res => res.json())
+      .then(json => {
+        setFormData(json);
+        setLoading(false);
+      });
+  }, [index]);
+
+  useEffect(() => {
+    fetch("https://699edb8f78dda56d396b9d19.mockapi.io/categories")
+      .then(res => res.json())
+      .then(json => setCategories(json));
+  }, []);
+
+    
 
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
-
-  const [notFound] = useState(() => {
-    const saved = localStorage.getItem("products");
-    const allProducts = saved ? JSON.parse(saved) : productsFromFile;
-    const product = allProducts.find(p => p.id === Number(index) || p.id === index);
-    return !product;
-  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,31 +66,21 @@ function EditProduct() {
       setErrors(validationErrors);
       return;
     }
-
-    const saved = localStorage.getItem("products");
-    const allProducts = saved ? JSON.parse(saved) : productsFromFile;
-
-    const updated = allProducts.map(p => {
-      if (p.id === Number(index) || p.id === index) {
-        return {
-          ...p,
-          title: formData.title.trim(),
-          price: parseFloat(formData.price),
-          category: formData.category.trim(),
-          description: formData.description.trim(),
-          image: formData.image.trim(),
-          count: parseInt(formData.count) || 0,
-        };
-      }
-      return p;
-    });
-
-    localStorage.setItem("products", JSON.stringify(updated));
-    setSuccess(true);
-    setTimeout(() => navigate("/admin/maintain-products"), 1500);
+    fetch("https://699edb8f78dda56d396b9d19.mockapi.io/products/" + index, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    })
+      .then(res => res.json())
+      .then(() => {
+        setSuccess(true);
+        setTimeout(() => navigate("/admin/maintain-products"), 1500);
+      });
   };
 
-  if (notFound) return (
+  if (loading) return <Container className="mt-4"><p>Loading...</p></Container>;
+
+  if (!formData.id === 0) return (
     <Container className="mt-4 text-center">
       <h4>❌ Product not found!</h4>
       <Link to="/admin/maintain-products">
@@ -88,8 +88,6 @@ function EditProduct() {
       </Link>
     </Container>
   );
-
-  if (!formData) return <Container className="mt-4"><p>Loading...</p></Container>;
 
   return (
     <Container className="mt-4" style={{ maxWidth: "700px" }}>
@@ -139,14 +137,62 @@ function EditProduct() {
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Category *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    isInvalid={!!errors.category}
-                  />
-                  <Form.Control.Feedback type="invalid">{errors.category}</Form.Control.Feedback>
+                  {!showNewCategory ? (
+                    <>
+                      <Form.Select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleChange}
+                        isInvalid={!!errors.category}
+                      >
+                        <option value="">-- Select category --</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">{errors.category}</Form.Control.Feedback>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0 mt-1"
+                        onClick={() => setShowNewCategory(true)}
+                      >
+                        + Add new category
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Form.Control
+                        type="text"
+                        placeholder="New category name..."
+                        value={newCategory}
+                        onChange={e => setNewCategory(e.target.value)}
+                      />
+                      <div className="d-flex gap-2 mt-1">
+                        <Button
+                          variant="success"
+                          size="sm"
+                          onClick={() => {
+                            if (newCategory.trim()) {
+                              setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+                              setCategories(prev => [...prev, { id: Date.now(), name: newCategory.trim() }]);
+                              setNewCategory("");
+                              setShowNewCategory(false);
+                            }
+                          }}
+                        >
+                          ✔ Use
+                        </Button>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => { setShowNewCategory(false); setNewCategory(""); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </Form.Group>
               </Col>
             </Row>

@@ -1,27 +1,48 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import productsDb from "../../data/products.json";
 import { Link } from "react-router-dom";
 import { Container, Table, Button, Badge, Image, Form, InputGroup } from "react-bootstrap";
 
 function MaintainProducts() {
-  const [products, setProducts] = useState(() => {
-  const saved = localStorage.getItem("products");
-  return saved ? JSON.parse(saved) : productsDb;
-});
+//   const [products, setProducts] = useState(() => {
+//   const saved = localStorage.getItem("products");
+//   return saved ? JSON.parse(saved) : productsDb;
+// });
 
+const [products, setProducts] = useState([]);
+const [loading, setLoading] = useState (true);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  useEffect (() => {
+    fetch("https://699edb8f78dda56d396b9d19.mockapi.io/products")
+    .then(res => res.json())
+    .then(json => {
+      setProducts(json);
+      setLoading(false);  //loading läheb maha
+    })
 
-function deleteProduct(index) {
-  const updated = products.filter((_, i) => i !== index);
-  localStorage.setItem("products", JSON.stringify(updated));
-  setProducts(updated);
-}
+  }, []);
+
+const [searchQuery, setSearchQuery] = useState("");
+
+  const deleteProduct = (productId, Index) => {
+    fetch("https://699edb8f78dda56d396b9d19.mockapi.io/products/" + productId, {
+      method: "DELETE"
+    })
+      .then(res => res.json())
+      .then(() => {
+        products.splice(Index, 1);
+        setProducts(products.slice());
+      })
+  }
 
   // Filtreeri otsisõna järgi (.title sees)
   const filteredProducts = products.filter(product =>
     product.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) {  //siia pane spinner jooksma
+    return <div></div>
+  }
 
   return (
     <Container fluid className="mt-4">
@@ -90,7 +111,6 @@ function deleteProduct(index) {
         <thead>
           <tr>
             <th>#</th>
-            <th>Index</th>
             <th>Product</th>
             <th>Price</th>
             <th>Category</th>
@@ -113,7 +133,6 @@ function deleteProduct(index) {
           {filteredProducts.map((product, index) => (
             <tr key={product.id}>
               <td>{index + 1}</td>
-              <td>{index}</td>
 
               {/* Product name + stock count */}
               <td style={{ maxWidth: "200px" }}>
@@ -164,7 +183,7 @@ function deleteProduct(index) {
                 <Button
                   variant="outline-danger"
                   size="sm"
-                  onClick={() => deleteProduct(index)}
+                  onClick={() => deleteProduct(product.id, index)}
                 >
                   Delete
                 </Button>

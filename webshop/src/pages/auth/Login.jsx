@@ -154,13 +154,6 @@ function Login() {
               Sign In
             </button>
 
-            {/* Sotsiaalmeedia */}
-            <div style={{ textAlign: "center", color: "#666", fontSize: "0.85rem" }}>
-              or sign in with &nbsp;
-              <a href="#" style={{ color: "#4267B2", fontSize: "1.3rem", textDecoration: "none" }}>f</a>
-              &nbsp;
-              <a href="#" style={{ color: "#db4437", fontSize: "1.3rem", textDecoration: "none" }}>g</a>
-            </div>
           </form>
         </div>
 

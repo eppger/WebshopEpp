@@ -126,16 +126,9 @@ function SignUp() {
               }}
               onMouseOver={e => e.target.style.backgroundColor = "#e09510"}
               onMouseOut={e => e.target.style.backgroundColor = "#f5a623"}
-            >
-              Create Account
-            </button>
+            >Create Account</button>
 
-            <div style={{ textAlign: "center", color: "#666", fontSize: "0.85rem" }}>
-              or sign up with &nbsp;
-              <a href="#" style={{ color: "#4267B2", fontSize: "1.3rem", textDecoration: "none" }}>f</a>
-              &nbsp;
-              <a href="#" style={{ color: "#db4437", fontSize: "1.3rem", textDecoration: "none" }}>g</a>
-            </div>
+
           </form>
         </div>
 

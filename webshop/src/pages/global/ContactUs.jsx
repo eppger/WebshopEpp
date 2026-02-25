@@ -24,7 +24,7 @@ function ContactUs() {
 
   const messageValue = watch('message', '')
 
-  const onSubmit = async (data, e) => {
+  const onSubmit = async () => {
     setSendError(false)
     try {
       await emailjs.sendForm(
@@ -65,7 +65,6 @@ function ContactUs() {
                 <div style={{
                   width: '42px', height: '42px',
                   borderRadius: '10px',
-                  backgroundColor: '#eff6ff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '1.1rem', flexShrink: 0
                 }}>
@@ -81,14 +80,6 @@ function ContactUs() {
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Illustratsioon */}
-          <div style={{ marginTop: '40px', textAlign: 'center' }}>
-            <div style={{ fontSize: '7rem', lineHeight: 1, marginBottom: '12px' }}>💌</div>
-            <p style={{ color: '#9ca3af', fontSize: '0.85rem', fontStyle: 'italic' }}>
-              "Every message matters to us."
-            </p>
           </div>
         </div>
 
