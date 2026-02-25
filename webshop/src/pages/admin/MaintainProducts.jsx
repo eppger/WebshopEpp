@@ -26,10 +26,15 @@ function deleteProduct(index) {
   return (
     <Container fluid className="mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Toodete haldus</h2>
-        <Link to="/admin/add-product">
-          <Button variant="success">+ Lisa uus toode</Button>
-        </Link>
+        <h2>Manage Products ({filteredProducts.length})</h2>
+        <div className="d-flex gap-2">
+          <Button variant="outline-secondary" size="sm" onClick={() => { localStorage.removeItem("products"); setProducts(productsDb); }}>
+            Restore original
+          </Button>
+          <Link to="/admin/add-product">
+            <Button variant="success">+ Add new product</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Otsing */}
@@ -37,7 +42,7 @@ function deleteProduct(index) {
         <InputGroup.Text>🔍</InputGroup.Text>
         <Form.Control
           type="text"
-          placeholder="Otsi toote nimetuse järgi..."
+          placeholder="Search by product name..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
@@ -46,24 +51,54 @@ function deleteProduct(index) {
         )}
       </InputGroup>
 
-      <p className="text-muted">
-        Kokku tooteid: <strong>{filteredProducts.length}</strong>
-        {searchQuery && <span className="text-primary ms-2">(otsing: "{searchQuery}")</span>}
-      </p>
+      {searchQuery && (
+        <p className="text-muted">
+          <span className="text-primary">Search: "{searchQuery}"</span>
+          {' — '}<strong>{filteredProducts.length}</strong> result(s)
+        </p>
+      )}
 
-      <Table striped bordered hover responsive size="sm">
-        <thead className="table-dark">
+      <style>{`
+        .products-table thead th {
+          background-color: #f5f5f5 !important;
+          color: #555 !important;
+          font-weight: 600;
+          font-size: 0.78rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          border: none !important;
+          border-bottom: 2px solid #e0e0e0 !important;
+          padding: 10px 8px;
+        }
+        .products-table tbody tr {
+          background-color: #fff !important;
+          border-bottom: 1px solid #e8e8e8 !important;
+        }
+        .products-table tbody tr:hover {
+          background-color: #f9f9f9 !important;
+        }
+        .products-table td {
+          border-color: #e8e8e8 !important;
+          vertical-align: middle;
+        }
+        .products-table {
+          border: 1px solid #e0e0e0 !important;
+        }
+      `}</style>
+
+      <Table responsive size="sm" className="products-table">
+        <thead>
           <tr>
             <th>#</th>
-            <th>ID</th>
-            <th>Pilt</th>
-            <th>Nimetus</th>
-            <th>Hind</th>
-            <th>Kategooria</th>
-            <th>Kirjeldus</th>
-            <th>Reiting</th>
-            <th>Muuda</th>
-            <th>Kustuta</th>
+            <th>Index</th>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Rating</th>
+            <th>Image</th>
+            <th>Delete</th>
+            <th>Edit</th>
           </tr>
         </thead>
 
@@ -71,77 +106,75 @@ function deleteProduct(index) {
           {filteredProducts.length === 0 ? (
             <tr>
               <td colSpan="10" className="text-center text-muted py-4">
-                Ühtegi toodet ei leitud otsisõnaga "<strong>{searchQuery}</strong>"
+                No products found for "<strong>{searchQuery}</strong>"
               </td>
             </tr>
           ) : null}
           {filteredProducts.map((product, index) => (
             <tr key={product.id}>
               <td>{index + 1}</td>
-              <td>{product.id}</td>
+              <td>{index}</td>
 
-              {/* Pilt */}
-              <td>
-                <Image
-                  src={product.image}
-                  alt={product.title}
-                  style={{ width: "50px", height: "50px", objectFit: "contain" }}
-                />
-              </td>
-
-              {/* Nimetus */}
+              {/* Product name + stock count */}
               <td style={{ maxWidth: "200px" }}>
-                <span title={product.title}>
-                  {product.title.length > 40
-                    ? product.title.substring(0, 40) + "..."
+                <div style={{ fontWeight: '600' }} title={product.title}>
+                  {product.title.length > 30
+                    ? product.title.substring(0, 30) + "..."
                     : product.title}
-                </span>
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "#888" }}>
+                  📦 {product.rating?.count ?? 0} in stock
+                </div>
               </td>
 
-              {/* Hind */}
+              {/* Price */}
               <td className="text-success fw-bold">
                 {product.price.toFixed(2)} €
               </td>
 
-              {/* Kategooria */}
+              {/* Category */}
               <td>
                 <Badge bg="secondary">{product.category}</Badge>
               </td>
 
-              {/* Kirjeldus */}
+              {/* Description */}
               <td style={{ maxWidth: "200px", fontSize: "0.8rem", color: "#666" }}>
                 {product.description.length > 60
                   ? product.description.substring(0, 60) + "..."
                   : product.description}
               </td>
 
-              {/* Reiting */}
+              {/* Rating */}
               <td>
-                <div>
-                  <span className="text-warning">⭐</span>
-                  <strong> {product.rating.rate}</strong>
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "#888" }}>
-                  ({product.rating.count} hinnangut)
-                </div>
+                <div><span className="text-warning">⭐</span> <strong>{product.rating.rate}</strong></div>
+                <div style={{ fontSize: "0.75rem", color: "#888" }}>({product.rating.count} reviews)</div>
               </td>
 
-              {/* Muuda */}
+              {/* Image */}
               <td>
-                <Link to={`/admin/edit-product/${product.id}`}>
-                  <Button variant="warning" size="sm">✏️ Muuda</Button>
-                </Link>
+                <Image
+                  src={product.image}
+                  alt={product.title}
+                  style={{ width: "40px", height: "40px", objectFit: "contain" }}
+                />
               </td>
 
-              {/* Kustuta */}
+              {/* Delete */}
               <td>
                 <Button
-                  variant="danger"
+                  variant="outline-danger"
                   size="sm"
                   onClick={() => deleteProduct(index)}
                 >
-                  🗑️ Kustuta
+                  Delete
                 </Button>
+              </td>
+
+              {/* Edit */}
+              <td>
+                <Link to={`/admin/edit-product/${product.id}`}>
+                  <Button variant="outline-success" size="sm">Edit</Button>
+                </Link>
               </td>
             </tr>
           ))}

@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Home",
+    "shops": "Shops",
+    "cart": "Cart",
+    "contact": "Contact",
+    "admin": "Admin",
+    "adminHome": "Admin Home",
+    "addProduct": "Add Product",
+    "manageProducts": "Manage Products",
+    "manageCategories": "Manage Categories",
+    "manageShops": "Manage Shops",
+    "login": "Login",
+    "register": "Register"
+  }
+}

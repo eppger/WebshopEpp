@@ -119,13 +119,10 @@ function Shops() {
               onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'}
               onMouseLeave={e => e.currentTarget.style.boxShadow = ''}
             >
-              <div className="d-flex justify-content-between align-items-start mb-2">
+              <div className="mb-2">
                 <h6 style={{ fontWeight: '700', color: '#111', margin: 0 }}>
                   {shop.name.split('— ')[1] || shop.name}
                 </h6>
-                <span style={{ color: '#252840', fontSize: '0.8rem', fontWeight: '500' }}>
-                  {shop.address.split(',')[0]}
-                </span>
               </div>
 
               <p style={{ color: '#6b7280', fontSize: '0.82rem', margin: '0 0 12px' }}>

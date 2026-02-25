@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Avaleht",
+    "shops": "Poed",
+    "cart": "Ostukorv",
+    "contact": "Kontakt",
+    "admin": "Admin",
+    "adminHome": "Admin avaleht",
+    "addProduct": "Lisa toode",
+    "manageProducts": "Halda tooteid",
+    "manageCategories": "Halda kategooriaid",
+    "manageShops": "Halda poode",
+    "login": "Logi sisse",
+    "register": "Registreeru"
+  }
+}
