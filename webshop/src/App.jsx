@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="App">
       <NavigationBar />
-
+      <div className="main-content">
       <Routes>
         <Route path='/' element={<HomePage />} />
         <Route path='contact' element={<ContactUs />} />
@@ -43,7 +43,8 @@ function App() {
       </Routes>
 
     </div>
+    </div>
   )
 }
 
-export default App
+export default App  

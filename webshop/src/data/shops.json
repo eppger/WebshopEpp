@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "name": "Tallinn — Ülemiste",
+    "city": "tallinn",
+    "address": "Suur-Sõjamäe 4, Tallinn",
+    "phone": "+372 5123 4567",
+    "hours": "Mon-Fri 9-21, Sat-Sun 10-20",
+    "lat": 59.422,
+    "lng": 24.793
+  },
+  {
+    "id": 2,
+    "name": "Tallinn — Kristiine",
+    "city": "tallinn",
+    "address": "Endla 45, Tallinn",
+    "phone": "+372 5234 5678",
+    "hours": "Mon-Fri 10-22, Sat-Sun 10-21",
+    "lat": 59.427,
+    "lng": 24.723
+  },
+  {
+    "id": 3,
+    "name": "Tallinn — Viru",
+    "city": "tallinn",
+    "address": "Viru väljak 4, Tallinn",
+    "phone": "+372 5345 6789",
+    "hours": "Mon-Sun 9-22",
+    "lat": 59.436,
+    "lng": 24.755
+  },
+  {
+    "id": 4,
+    "name": "Tartu — Raatuse",
+    "city": "tartu",
+    "address": "Raatuse 22, Tartu",
+    "phone": "+372 5456 7890",
+    "hours": "Mon-Fri 9-20, Sat 10-18",
+    "lat": 58.382,
+    "lng": 26.730
+  },
+  {
+    "id": 5,
+    "name": "Tartu — Lõunakeskus",
+    "city": "tartu",
+    "address": "Ringtee 75, Tartu",
+    "phone": "+372 5567 8901",
+    "hours": "Mon-Sun 9-21",
+    "lat": 58.358,
+    "lng": 26.677
+  },
+  {
+    "id": 6,
+    "name": "Haapsalu — Kesklinn",
+    "city": "haapsalu",
+    "address": "Karja 17, Haapsalu",
+    "phone": "+372 5678 9012",
+    "hours": "Mon-Fri 10-18, Sat 10-15",
+    "lat": 58.943,
+    "lng": 23.541
+  }
+]
