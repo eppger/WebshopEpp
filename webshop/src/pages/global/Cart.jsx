@@ -17,8 +17,14 @@ function Cart() {
   useEffect(() => {
     fetch('https://www.omniva.ee/locations.json')
       .then(res => res.json())
-      .then(json => { setParcelMachines(json); setLoadingMachines(false) })
-      .catch(() => setLoadingMachines(false))
+      .then(json => { 
+        setParcelMachines(json) 
+        setLoadingMachines(false) 
+      })
+      .catch(err => {
+        console.error('Omniva pakiautomaatide laadimise viga:', err)
+        setLoadingMachines(false)
+      })
   }, [])
 
   const handleCountryChange = (c) => {
@@ -33,17 +39,21 @@ function Cart() {
       alert(t('cart.selectParcelAlert'))
       return
     }
+
     setPaying(true)
+
     const paymentUrl = 'https://igw-demo.every-pay.com/api/v4/payments/oneoff'
     const paymentBody = {
       account_name: 'EUR3D1',
       nonce: '555' + new Date() + Math.random(),
       timestamp: new Date(),
-      amount: totalPrice,
+      amount: totalPrice, // eeldan, et totalPrice on samas formaadis, mida EveryPay ootab
       order_reference: 'order-' + Math.random(),
-      customer_url: window.location.origin,
+      // OLULINE: eemaldatud tühik algusest
+      customer_url: 'https://epp-webshop.web.app/',
       api_username: 'e36eb40f5ec87fa2'
     }
+
     fetch(paymentUrl, {
       method: 'POST',
       body: JSON.stringify(paymentBody),
@@ -53,9 +63,19 @@ function Cart() {
       }
     })
       .then(res => res.json())
-      .then(json => { window.location.href = json.payment_link })
-      .catch(() => {
-        alert(t('cart.paymentFailed'))
+      .then(json => {
+        console.log('EveryPay response:', json)
+        if (json.payment_link) {
+          window.location.href = json.payment_link
+        } else {
+          console.error('Makselinki ei tulnud:', json)
+          alert('Makse alustamine ebaõnnestus. Proovi uuesti.')
+          setPaying(false)
+        }
+      })
+      .catch(err => {
+        console.error('Makse viga:', err)
+        alert('Makse alustamine ebaõnnestus. Proovi uuesti.')
         setPaying(false)
       })
   }
@@ -114,8 +134,19 @@ function Cart() {
               }}>
                 {/* Mobiil */}
                 <div className="d-flex d-md-none gap-3 align-items-start">
-                  <Image src={item.image} width={60} height={60}
-                    style={{ objectFit: 'contain', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '4px', background: '#fff', flexShrink: 0 }} />
+                  <Image
+                    src={item.image}
+                    width={60}
+                    height={60}
+                    style={{
+                      objectFit: 'contain',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      padding: '4px',
+                      background: '#fff',
+                      flexShrink: 0
+                    }}
+                  />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#111', marginBottom: '6px' }}>
                       {item.name || item.title}
@@ -125,52 +156,109 @@ function Cart() {
                     </div>
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="d-flex align-items-center gap-2">
-                        <Button size="sm" variant="outline-secondary"
+                        <Button
+                          size="sm"
+                          variant="outline-secondary"
                           style={{ width: '28px', height: '28px', padding: 0, lineHeight: 1 }}
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</Button>
-                        <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600' }}>{item.quantity}</span>
-                        <Button size="sm" variant="outline-secondary"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          −
+                        </Button>
+                        <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600' }}>
+                          {item.quantity}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline-secondary"
                           style={{ width: '28px', height: '28px', padding: 0, lineHeight: 1 }}
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</Button>
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          +
+                        </Button>
                       </div>
                       <div className="d-flex align-items-center gap-3">
-                        <span style={{ fontWeight: '700', color: '#111' }}>{(item.price * item.quantity).toFixed(2)} €</span>
-                        <Button size="sm" variant="outline-danger"
+                        <span style={{ fontWeight: '700', color: '#111' }}>
+                          {(item.price * item.quantity).toFixed(2)} €
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline-danger"
                           style={{ width: '28px', height: '28px', padding: 0, lineHeight: 1 }}
-                          onClick={() => removeFromCart(item.id)}>×</Button>
+                          onClick={() => removeFromCart(item.id)}
+                        >
+                          ×
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Desktop */}
-                <div className="d-none d-md-grid align-items-center" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '8px' }}>
+                <div
+                  className="d-none d-md-grid align-items-center"
+                  style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '8px' }}
+                >
                   <div className="d-flex align-items-center gap-3">
-                    <Image src={item.image} width={52} height={52}
-                      style={{ objectFit: 'contain', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '4px', background: '#fff' }} />
-                    <span style={{ fontWeight: '500', color: '#111', fontSize: '0.9rem' }}>{item.name || item.title}</span>
+                    <Image
+                      src={item.image}
+                      width={52}
+                      height={52}
+                      style={{
+                        objectFit: 'contain',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb',
+                        padding: '4px',
+                        background: '#fff'
+                      }}
+                    />
+                    <span style={{ fontWeight: '500', color: '#111', fontSize: '0.9rem' }}>
+                      {item.name || item.title}
+                    </span>
                   </div>
                   <span style={{ color: '#6b7280' }}>{item.price.toFixed(2)} €</span>
                   <div className="d-flex align-items-center gap-2">
-                    <Button size="sm" variant="outline-secondary"
+                    <Button
+                      size="sm"
+                      variant="outline-secondary"
                       style={{ width: '28px', height: '28px', padding: 0, lineHeight: 1 }}
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</Button>
-                    <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600' }}>{item.quantity}</span>
-                    <Button size="sm" variant="outline-secondary"
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    >
+                      −
+                    </Button>
+                    <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600' }}>
+                      {item.quantity}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline-secondary"
                       style={{ width: '28px', height: '28px', padding: 0, lineHeight: 1 }}
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</Button>
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    >
+                      +
+                    </Button>
                   </div>
-                  <span style={{ fontWeight: '600', color: '#111' }}>{(item.price * item.quantity).toFixed(2)} €</span>
-                  <Button size="sm" variant="outline-danger"
+                  <span style={{ fontWeight: '600', color: '#111' }}>
+                    {(item.price * item.quantity).toFixed(2)} €
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline-danger"
                     style={{ width: '28px', height: '28px', padding: 0, lineHeight: 1 }}
-                    onClick={() => removeFromCart(item.id)}>×</Button>
+                    onClick={() => removeFromCart(item.id)}
+                  >
+                    ×
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="mt-3">
-            <Link to="/"><Button variant="outline-secondary" size="sm">{t('cart.continueShopping')}</Button></Link>
+            <Link to="/">
+              <Button variant="outline-secondary" size="sm">
+                {t('cart.continueShopping')}
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -178,16 +266,28 @@ function Cart() {
 
           {/* Pakiautomaat */}
           <div className="section-card">
-            <h6 style={{ fontWeight: '700', marginBottom: '14px', color: '#111' }}>{t('cart.delivery')}</h6>
+            <h6 style={{ fontWeight: '700', marginBottom: '14px', color: '#111' }}>
+              {t('cart.delivery')}
+            </h6>
             <div className="d-flex gap-2 mb-3">
               {['EE', 'LV', 'LT'].map(c => (
-                <button key={c} onClick={() => handleCountryChange(c)} style={{
-                  flex: 1, padding: '6px', borderRadius: '7px', border: '1px solid',
-                  borderColor: country === c ? '#2563eb' : '#d1d5db',
-                  backgroundColor: country === c ? '#2563eb' : '#fff',
-                  color: country === c ? '#fff' : '#374151',
-                  fontWeight: '600', fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.15s'
-                }}>
+                <button
+                  key={c}
+                  onClick={() => handleCountryChange(c)}
+                  style={{
+                    flex: 1,
+                    padding: '6px',
+                    borderRadius: '7px',
+                    border: '1px solid',
+                    borderColor: country === c ? '#2563eb' : '#d1d5db',
+                    backgroundColor: country === c ? '#2563eb' : '#fff',
+                    color: country === c ? '#fff' : '#374151',
+                    fontWeight: '600',
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                >
                   {c === 'EE' ? t('cart.estonia') : c === 'LV' ? t('cart.latvia') : t('cart.lithuania')}
                 </button>
               ))}
@@ -195,18 +295,34 @@ function Cart() {
             {loadingMachines ? (
               <div className="text-center py-2">
                 <Spinner animation="border" size="sm" style={{ color: '#2563eb' }} />
-                <span style={{ color: '#6b7280', fontSize: '0.85rem', marginLeft: '8px' }}>{t('cart.loading')}</span>
+                <span style={{ color: '#6b7280', fontSize: '0.85rem', marginLeft: '8px' }}>
+                  {t('cart.loading')}
+                </span>
               </div>
             ) : (
-              <Form.Select value={selectedMachine} onChange={e => setSelectedMachine(e.target.value)}>
+              <Form.Select
+                value={selectedMachine}
+                onChange={e => setSelectedMachine(e.target.value)}
+              >
                 <option value="">{t('cart.selectParcel')}</option>
                 {filteredMachines.map(pm => (
-                  <option key={pm.NAME} value={pm.NAME}>{pm.NAME}</option>
+                  <option key={pm.NAME} value={pm.NAME}>
+                    {pm.NAME}
+                  </option>
                 ))}
               </Form.Select>
             )}
             {selectedMachine && (
-              <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#eff6ff', borderRadius: '7px', fontSize: '0.82rem', color: '#2563eb' }}>
+              <div
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 12px',
+                  backgroundColor: '#eff6ff',
+                  borderRadius: '7px',
+                  fontSize: '0.82rem',
+                  color: '#2563eb'
+                }}
+              >
                 ✅ {selectedMachine}
               </div>
             )}
@@ -214,31 +330,70 @@ function Cart() {
 
           {/* Order Summary */}
           <div className="section-card">
-            <h6 style={{ fontWeight: '700', marginBottom: '16px', color: '#111' }}>{t('cart.orderSummary')}</h6>
-            <div className="d-flex justify-content-between mb-2" style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-              <span>{t('cart.subtotal')} ({totalItems} {totalItems === 1 ? t('cart.item') : t('cart.items')})</span>
+            <h6 style={{ fontWeight: '700', marginBottom: '16px', color: '#111' }}>
+              {t('cart.orderSummary')}
+            </h6>
+            <div
+              className="d-flex justify-content-between mb-2"
+              style={{ fontSize: '0.9rem', color: '#6b7280' }}
+            >
+              <span>
+                {t('cart.subtotal')} ({totalItems}{' '}
+                {totalItems === 1 ? t('cart.item') : t('cart.items')})
+              </span>
               <span>{totalPrice.toFixed(2)} €</span>
             </div>
-            <div className="d-flex justify-content-between mb-2" style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+            <div
+              className="d-flex justify-content-between mb-2"
+              style={{ fontSize: '0.9rem', color: '#6b7280' }}
+            >
               <span>{t('cart.deliveryLabel')}</span>
               <span style={{ color: '#16a34a' }}>{t('cart.deliveryFree')}</span>
             </div>
             <hr style={{ borderColor: '#e5e7eb', margin: '14px 0' }} />
-            <div className="d-flex justify-content-between mb-4" style={{ fontWeight: '700', fontSize: '1.05rem', color: '#111' }}>
+            <div
+              className="d-flex justify-content-between mb-4"
+              style={{ fontWeight: '700', fontSize: '1.05rem', color: '#111' }}
+            >
               <span>{t('cart.total')}</span>
               <span>{totalPrice.toFixed(2)} €</span>
             </div>
-            <Button variant="primary" size="lg" className="w-100" onClick={handlePayment} disabled={paying || !selectedMachine}>
-              {paying
-                ? <><Spinner animation="border" size="sm" className="me-2" />{t('cart.processing')}</>
-                : t('cart.payNow')}
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-100"
+              onClick={handlePayment}
+              disabled={paying || !selectedMachine}
+            >
+              {paying ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  {t('cart.processing')}
+                </>
+              ) : (
+                t('cart.payNow')
+              )}
             </Button>
             {!selectedMachine && (
-              <p style={{ fontSize: '0.8rem', color: '#f59e0b', textAlign: 'center', marginTop: '12px' }}>
+              <p
+                style={{
+                  fontSize: '0.8rem',
+                  color: '#f59e0b',
+                  textAlign: 'center',
+                  marginTop: '12px'
+                }}
+              >
                 {t('cart.selectParcelWarning')}
               </p>
             )}
-            <p style={{ fontSize: '0.8rem', color: '#9ca3af', textAlign: 'center', marginTop: '8px' }}>
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: '#9ca3af',
+                textAlign: 'center',
+                marginTop: '8px'
+              }}
+            >
               {t('cart.securePayment')}
             </p>
           </div>
