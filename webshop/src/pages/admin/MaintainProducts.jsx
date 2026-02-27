@@ -4,10 +4,6 @@ import { Link } from "react-router-dom";
 import { Container, Table, Button, Badge, Image, Form, InputGroup } from "react-bootstrap";
 
 function MaintainProducts() {
-//   const [products, setProducts] = useState(() => {
-//   const saved = localStorage.getItem("products");
-//   return saved ? JSON.parse(saved) : productsDb;
-// });
 
 const [products, setProducts] = useState([]);
 const [loading, setLoading] = useState (true);

@@ -1,6 +1,7 @@
 #root {
-  margin: 0;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   background-color: #F8F9FA;
 }
 /* ===== NAVBAR ===== */
@@ -195,8 +196,7 @@
 
 /* ===== MAIN CONTENT ===== */
 .main-content {
-  min-height: calc(100vh - 86px);
-  background-color: #F8F9FA;
+flex-grow: 1;
 }
 
 /* ===== KAARDID ===== */
@@ -372,9 +372,10 @@
 
 /* ===== PAGE WRAPPER ===== */
 .page-wrapper {
-  max-width: 1200px;
+max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 24px;
+  /* Üleval ja all 24px õhku, külgedel 24px */
+  padding: 24px; 
   background-color: #F8F9FA;
 }
 
