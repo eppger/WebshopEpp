@@ -97,6 +97,8 @@ function NavigationBar() {
             onClick={() => muudaKeel('en')}
           />
         </div>
+        
+    <div className="nav-divider" />
 
         <NavLink to="/login" className="nav-link-custom" onClick={closeAll}>
           {t('nav.login')}

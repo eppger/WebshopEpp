@@ -1,20 +1,34 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import productsFromFile from '../../data/products.json'
 import { useCart } from '../../context/CartContext'
-import { Container, Row, Col, Badge, Button, Card, Toast, ToastContainer } from 'react-bootstrap'
+import { Container, Row, Col, Badge, Button, Card, Toast, ToastContainer, Spinner } from 'react-bootstrap'
 
 function SingleProduct() {
   const { index } = useParams()
-const allProducts = (() => {
-  const saved = localStorage.getItem("products");
-  return saved ? JSON.parse(saved) : productsFromFile;
-})();
-const product = allProducts.find(p => p.id === Number(index) || p.id === index)
   const { addToCart } = useCart()
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [showToast, setShowToast] = useState(false)
 
-  if (product === undefined) {
+  useEffect(() => {
+    fetch(`https://699edb8f78dda56d396b9d19.mockapi.io/products/${index}`)
+      .then(res => res.json())
+      .then(json => {
+        setProduct(json)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [index])
+
+  if (loading) {
+    return (
+      <Container className="mt-5 text-center">
+        <Spinner animation="border" />
+      </Container>
+    )
+  }
+
+  if (!product) {
     return (
       <Container className="mt-5 text-center">
         <h3>Product not found!</h3>
@@ -54,22 +68,24 @@ const product = allProducts.find(p => p.id === Number(index) || p.id === index)
               <h2 className="mb-3">{product.title}</h2>
 
               {/* Hind */}
-              <h3 className="text-success mb-3">{product.price.toFixed(2)} €</h3>
+              <h3 className="text-success mb-3">{Number(product.price).toFixed(2)} €</h3>
 
               {/* Kirjeldus */}
               <p className="text-muted mb-4">{product.description}</p>
 
               {/* Reiting */}
-              <div className="d-flex align-items-center gap-3 mb-4">
-                <div>
-                  <span className="text-warning fs-5">⭐</span>
-                  <strong className="fs-5"> {product.rating.rate}</strong>
-                  <span className="text-muted"> / 5</span>
+              {product.rating && (
+                <div className="d-flex align-items-center gap-3 mb-4">
+                  <div>
+                    <span className="text-warning fs-5">⭐</span>
+                    <strong className="fs-5"> {product.rating.rate}</strong>
+                    <span className="text-muted"> / 5</span>
+                  </div>
+                  <div className="text-muted">
+                    ({product.rating.count} reviews)
+                  </div>
                 </div>
-                <div className="text-muted">
-                  ({product.rating.count} reviews)
-                </div>
-              </div>
+              )}
 
               {/* Nupud */}
               <div className="d-flex gap-3">
